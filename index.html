@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DatixNode — Next Generation Cloud Infrastructure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root {
+    --cyan: #00ffe5;
+    --purple: #a855f7;
+    --magenta: #f0abfc;
+    --bg: #050810;
+    --bg2: #080d1a;
+    --bg3: #0c1220;
+    --glass: rgba(255,255,255,0.035);
+    --glass-border: rgba(0,255,229,0.12);
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-glow: 0 0 40px rgba(0,255,229,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--cyan);
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: screen;
+    box-shadow: 0 0 20px var(--cyan);
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(0,255,229,0.4);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.15s ease, width 0.2s, height 0.2s;
+  }
+
+  /* BACKGROUND MESH */
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0,255,229,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 80%, rgba(168,85,247,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(240,171,252,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* GRID OVERLAY */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,255,229,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,229,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    background: rgba(5,8,16,0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,255,229,0.06);
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links {
+    display: flex; gap: 36px; list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; right: 0; height: 1px;
+    background: var(--cyan);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  .nav-cta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 10px 24px;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    background: transparent;
+    border-radius: 4px;
+    cursor: none;
+    transition: background 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+  }
+  .nav-cta:hover {
+    background: rgba(0,255,229,0.08);
+    box-shadow: 0 0 20px rgba(0,255,229,0.25);
+  }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+    padding: 140px 40px 80px;
+    overflow: hidden;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--cyan);
+    border: 1px solid rgba(0,255,229,0.2);
+    padding: 8px 18px;
+    border-radius: 100px;
+    margin-bottom: 36px;
+    background: rgba(0,255,229,0.04);
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--cyan); }
+    50% { opacity: 0.4; box-shadow: none; }
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2.8rem, 7vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    animation: fadeUp 0.9s 0.1s ease both;
+  }
+
+  .hero-title .line1 {
+    display: block;
+    background: linear-gradient(135deg, #ffffff 30%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-title .line2 {
+    display: block;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--magenta) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.8;
+    margin: 20px auto 48px;
+    font-weight: 400;
+    animation: fadeUp 1s 0.2s ease both;
+  }
+
+  .hero-btns {
+    display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 80px;
+    animation: fadeUp 1s 0.3s ease both;
+  }
+
+  .btn-primary {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 16px 36px;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    cursor: none;
+    text-decoration: none;
+    transition: box-shadow 0.3s, transform 0.2s;
+    display: inline-block;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 40px rgba(0,255,229,0.5), 0 0 80px rgba(168,85,247,0.3);
+    transform: translateY(-2px);
+  }
+
+  .btn-outline {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 15px 36px;
+    border: 1px solid rgba(168,85,247,0.5);
+    color: var(--magenta);
+    background: transparent;
+    border-radius: 6px;
+    cursor: none;
+    text-decoration: none;
+    transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+    display: inline-block;
+  }
+  .btn-outline:hover {
+    background: rgba(168,85,247,0.08);
+    box-shadow: 0 0 30px rgba(168,85,247,0.3);
+    transform: translateY(-2px);
+  }
+
+  /* STATS */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    border: 1px solid rgba(0,255,229,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%; max-width: 780px;
+    animation: fadeUp 1s 0.4s ease both;
+    background: rgba(0,255,229,0.04);
+  }
+
+  .stat-item {
+    padding: 24px 20px;
+    text-align: center;
+    border-right: 1px solid rgba(0,255,229,0.06);
+    background: rgba(5,8,16,0.6);
+    backdrop-filter: blur(10px);
+  }
+  .stat-item:last-child { border-right: none; }
+
+  .stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* FLOATING ORBS */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    animation: floatOrb 8s ease-in-out infinite;
+  }
+  .orb-1 { width: 400px; height: 400px; background: rgba(0,255,229,0.06); top: 10%; left: -100px; animation-delay: 0s; }
+  .orb-2 { width: 300px; height: 300px; background: rgba(168,85,247,0.08); top: 30%; right: -80px; animation-delay: 3s; }
+  .orb-3 { width: 200px; height: 200px; background: rgba(240,171,252,0.05); bottom: 20%; left: 40%; animation-delay: 5s; }
+
+  @keyframes floatOrb {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ABOUT */
+  #about {
+    padding: 120px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff 60%, var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: start;
+    margin-top: 60px;
+  }
+
+  .about-text p {
+    color: #94a3b8;
+    line-height: 1.9;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .about-features {
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 24px;
+    backdrop-filter: blur(16px);
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(0,255,229,0.25);
+    box-shadow: 0 0 30px rgba(0,255,229,0.08);
+    transform: translateY(-4px);
+  }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+
+  .feature-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .feature-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* PRICING CAROUSEL */
+  #pricing {
+    padding: 120px 0;
+    overflow: hidden;
+  }
+
+  .pricing-header {
+    padding: 0 60px;
+    margin-bottom: 60px;
+  }
+
+  .carousel-wrapper {
+    position: relative;
+  }
+
+  .carousel-track-outer {
+    overflow: hidden;
+    padding: 20px 60px 40px;
+  }
+
+  .carousel-track {
+    display: flex;
+    gap: 24px;
+    transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    will-change: transform;
+  }
+
+  .price-card {
+    flex: 0 0 300px;
+    background: var(--glass);
+    border: 1px solid rgba(0,255,229,0.1);
+    border-radius: 16px;
+    padding: 32px;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    cursor: default;
+  }
+
+  .price-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(0,255,229,0.06) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .price-card:hover {
+    border-color: rgba(0,255,229,0.35);
+    box-shadow: 0 0 60px rgba(0,255,229,0.12), 0 20px 60px rgba(0,0,0,0.4);
+    transform: translateY(-8px);
+  }
+  .price-card:hover::after { opacity: 1; }
+
+  .price-card.featured {
+    border-color: rgba(168,85,247,0.4);
+    background: rgba(168,85,247,0.06);
+  }
+  .price-card.featured:hover {
+    border-color: rgba(168,85,247,0.7);
+    box-shadow: 0 0 60px rgba(168,85,247,0.18), 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .price-card.featured::after {
+    background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.08) 0%, transparent 70%);
+  }
+
+  .price-badge {
+    position: absolute; top: 16px; right: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: linear-gradient(135deg, var(--purple), var(--magenta));
+    color: #000;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .price-plan {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .price-card.featured .price-plan { color: var(--magenta); }
+
+  .price-amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .price-period {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .price-divider {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0,255,229,0.15), transparent);
+    margin-bottom: 24px;
+  }
+  .price-card.featured .price-divider {
+    background: linear-gradient(90deg, rgba(168,85,247,0.3), transparent);
+  }
+
+  .price-specs {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .price-specs li {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: #94a3b8;
+  }
+
+  .price-specs li::before {
+    content: '▸';
+    color: var(--cyan);
+    font-size: 0.6rem;
+  }
+  .price-card.featured .price-specs li::before { color: var(--magenta); }
+
+  .buy-btn {
+    width: 100%;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,255,229,0.35);
+    background: transparent;
+    color: var(--cyan);
+    cursor: none;
+    transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+    text-transform: uppercase;
+  }
+  .buy-btn:hover {
+    background: rgba(0,255,229,0.1);
+    box-shadow: 0 0 25px rgba(0,255,229,0.25);
+    transform: translateY(-1px);
+  }
+
+  .price-card.featured .buy-btn {
+    border-color: rgba(168,85,247,0.5);
+    color: var(--magenta);
+  }
+  .price-card.featured .buy-btn:hover {
+    background: rgba(168,85,247,0.12);
+    box-shadow: 0 0 25px rgba(168,85,247,0.3);
+  }
+
+  /* CAROUSEL CONTROLS */
+  .carousel-controls {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    margin-top: 24px;
+    padding: 0 60px;
+  }
+
+  .carousel-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,255,229,0.2);
+    background: rgba(0,255,229,0.04);
+    color: var(--cyan);
+    font-size: 1rem;
+    cursor: none;
+    transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .carousel-btn:hover {
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(0,255,229,0.25);
+    background: rgba(0,255,229,0.08);
+  }
+
+  .carousel-dots {
+    display: flex; gap: 8px;
+  }
+  .carousel-dot {
+    width: 24px; height: 3px;
+    border-radius: 2px;
+    background: rgba(0,255,229,0.2);
+    transition: background 0.3s, width 0.3s;
+    cursor: none;
+  }
+  .carousel-dot.active {
+    background: var(--cyan);
+    width: 36px;
+    box-shadow: 0 0 10px rgba(0,255,229,0.5);
+  }
+
+  /* TEAM */
+  #team {
+    padding: 120px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .team-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+    margin-top: 60px;
+  }
+
+  .team-card {
+    background: var(--glass);
+    border: 1px solid rgba(168,85,247,0.12);
+    border-radius: 20px;
+    padding: 48px 40px;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
+  }
+
+  .team-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple), var(--magenta));
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .team-card:hover {
+    border-color: rgba(168,85,247,0.3);
+    box-shadow: 0 0 60px rgba(168,85,247,0.1), 0 30px 80px rgba(0,0,0,0.4);
+    transform: translateY(-6px);
+  }
+  .team-card:hover::before { opacity: 1; }
+
+  .team-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #000;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .team-avatar::after {
+    content: '';
+    position: absolute; inset: -3px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cyan), var(--purple), var(--magenta));
+    z-index: -1;
+    opacity: 0.4;
+    filter: blur(8px);
+  }
+
+  .team-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: 0.03em;
+  }
+
+  .team-role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0.9;
+  }
+
+  .team-desc {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.8;
+  }
+
+  .team-tag {
+    display: inline-block;
+    margin-top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,255,229,0.15);
+    color: var(--cyan);
+    background: rgba(0,255,229,0.04);
+  }
+
+  /* CONTACT */
+  #contact {
+    padding: 120px 60px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .contact-form-wrap {
+    background: var(--glass);
+    border: 1px solid rgba(0,255,229,0.1);
+    border-radius: 20px;
+    padding: 56px 48px;
+    backdrop-filter: blur(24px);
+    margin-top: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .contact-form-wrap::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    opacity: 0.8;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,255,229,0.12);
+    border-radius: 8px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    cursor: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: rgba(0,255,229,0.4);
+    box-shadow: 0 0 20px rgba(0,255,229,0.08);
+  }
+
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2300ffe5' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 20px;
+    cursor: none;
+  }
+  .form-select option { background: #0c1220; }
+
+  .form-textarea { resize: vertical; min-height: 120px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .submit-btn {
+    width: 100%;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(0,255,229,0.8), rgba(168,85,247,0.8));
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    cursor: none;
+    transition: box-shadow 0.3s, transform 0.2s, opacity 0.3s;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .submit-btn:hover {
+    box-shadow: 0 0 50px rgba(0,255,229,0.4), 0 0 80px rgba(168,85,247,0.3);
+    transform: translateY(-2px);
+  }
+  .submit-btn:disabled { opacity: 0.6; }
+
+  .form-msg {
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    margin-top: 16px;
+    display: none;
+  }
+  .form-msg.success { background: rgba(0,255,229,0.08); color: var(--cyan); border: 1px solid rgba(0,255,229,0.2); }
+  .form-msg.error { background: rgba(255,80,80,0.08); color: #f87171; border: 1px solid rgba(255,80,80,0.2); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid rgba(0,255,229,0.06);
+    padding: 40px 60px;
+    text-align: center;
+    position: relative; z-index: 1;
+  }
+
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .footer-tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+  }
+
+  .footer-links {
+    display: flex; gap: 24px; justify-content: center;
+    list-style: none; margin-bottom: 24px;
+  }
+  .footer-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    transition: color 0.3s;
+  }
+  .footer-links a:hover { color: var(--cyan); }
+
+  .footer-copy {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: rgba(100,116,139,0.5);
+    letter-spacing: 0.08em;
+  }
+
+  /* FLOATING SOCIAL BUTTONS */
+  .float-socials {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    display: flex; flex-direction: column; gap: 12px;
+    z-index: 200;
+  }
+
+  .float-btn {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,255,229,0.2);
+    background: rgba(5,8,16,0.8);
+    backdrop-filter: blur(16px);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    color: var(--cyan);
+    font-size: 1.1rem;
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s, background 0.3s;
+    cursor: none;
+  }
+  .float-btn:hover {
+    border-color: var(--cyan);
+    box-shadow: 0 0 25px rgba(0,255,229,0.4), 0 0 50px rgba(0,255,229,0.15);
+    background: rgba(0,255,229,0.08);
+    transform: scale(1.1) translateY(-2px);
+  }
+
+  .float-btn.github { color: var(--magenta); border-color: rgba(240,171,252,0.2); }
+  .float-btn.github:hover {
+    border-color: var(--magenta);
+    box-shadow: 0 0 25px rgba(240,171,252,0.4);
+    background: rgba(240,171,252,0.08);
+  }
+
+  /* SCROLL INDICATOR */
+  .scroll-line {
+    position: absolute; bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .scroll-line span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .scroll-line-bar {
+    width: 1px; height: 50px;
+    background: linear-gradient(to bottom, var(--cyan), transparent);
+    animation: scrollAnim 2s ease-in-out infinite;
+  }
+  @keyframes scrollAnim {
+    0%, 100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.5); opacity: 0.3; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    #about, #team { padding: 80px 24px; }
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .team-grid { grid-template-columns: 1fr; }
+    #pricing { padding: 80px 0; }
+    .pricing-header, .carousel-controls { padding: 0 24px; }
+    .carousel-track-outer { padding: 20px 24px 40px; }
+    #contact { padding: 80px 24px; }
+    .contact-form-wrap { padding: 36px 28px; }
+    .form-row { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    footer { padding: 32px 24px; }
+    .float-socials { bottom: 20px; right: 20px; }
+  }
+
+  @media (max-width: 540px) {
+    .hero-btns { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-outline { width: 100%; max-width: 280px; text-align: center; }
+    .price-card { flex: 0 0 260px; }
+  }
+
+  /* SECTION SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* TICKER */
+  .ticker-wrap {
+    overflow: hidden;
+    border-top: 1px solid rgba(0,255,229,0.06);
+    border-bottom: 1px solid rgba(0,255,229,0.06);
+    padding: 12px 0;
+    background: rgba(0,255,229,0.015);
+    position: relative; z-index: 1;
+  }
+  .ticker {
+    display: flex; gap: 60px;
+    animation: ticker 20s linear infinite;
+    white-space: nowrap;
+  }
+  .ticker-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    color: rgba(0,255,229,0.5);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .ticker-item span { color: rgba(0,255,229,0.25); margin: 0 10px; }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- BACKGROUND -->
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">DATIXNODE</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#pricing">Plans</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Get Started</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Infrastructure Online — All Systems Operational
+  </div>
+
+  <h1 class="hero-title">
+    <span class="line1">DATIXNODE</span>
+    <span class="line2">Cloud & Web3</span>
+  </h1>
+
+  <p class="hero-sub">
+    Next Generation Cloud Infrastructure & Web3 Compute Solutions — built for developers, engineers, and builders who demand more.
+  </p>
+
+  <div class="hero-btns">
+    <a href="#pricing" class="btn-primary">Explore Plans</a>
+    <a href="#contact" class="btn-outline">Contact Us</a>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-value">99.9%</div>
+      <div class="stat-label">Uptime SLA</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">Global</div>
+      <div class="stat-label">Server Network</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">Military</div>
+      <div class="stat-label">Grade Security</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">Web3</div>
+      <div class="stat-label">Ready Infra</div>
+    </div>
+  </div>
+
+  <div class="scroll-line">
+    <span>Scroll</span>
+    <div class="scroll-line-bar"></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">VPS Hosting <span>▸</span></span>
+    <span class="ticker-item">RDP Solutions <span>▸</span></span>
+    <span class="ticker-item">Web3 Infrastructure <span>▸</span></span>
+    <span class="ticker-item">High Performance Compute <span>▸</span></span>
+    <span class="ticker-item">Automation Pipelines <span>▸</span></span>
+    <span class="ticker-item">Cloud Orchestration <span>▸</span></span>
+    <span class="ticker-item">NVMe Storage <span>▸</span></span>
+    <span class="ticker-item">Dedicated IPs <span>▸</span></span>
+    <!-- duplicate for loop -->
+    <span class="ticker-item">VPS Hosting <span>▸</span></span>
+    <span class="ticker-item">RDP Solutions <span>▸</span></span>
+    <span class="ticker-item">Web3 Infrastructure <span>▸</span></span>
+    <span class="ticker-item">High Performance Compute <span>▸</span></span>
+    <span class="ticker-item">Automation Pipelines <span>▸</span></span>
+    <span class="ticker-item">Cloud Orchestration <span>▸</span></span>
+    <span class="ticker-item">NVMe Storage <span>▸</span></span>
+    <span class="ticker-item">Dedicated IPs <span>▸</span></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="reveal">
+    <div class="section-label">// Who We Are</div>
+    <h2 class="section-title">Built for Performance.<br/>Designed for Scale.</h2>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>DatixNode delivers scalable cloud infrastructure solutions focused on high-performance VPS and RDP services for developers, businesses, and Web3 builders who need reliability without compromise.</p>
+      <p>Our platform is engineered from the ground up to handle the demands of modern digital workloads — from startup MVPs to enterprise-grade deployments. Every node in our network is optimized for speed, security, and uptime.</p>
+      <p>We believe infrastructure should be invisible — so you can focus on building what matters.</p>
+    </div>
+
+    <div class="about-features reveal">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Infrastructure Management</div>
+        <div class="feature-desc">Orchestrating virtual server deployments to ensure 99.9% uptime for global clients. Our automated health monitoring detects and resolves issues before they affect your workloads.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">Automation Engine</div>
+        <div class="feature-desc">Python-based automation scripts streamline inventory management, payment reconciliation, and server provisioning — reducing manual overhead by over 80%.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <div class="feature-title">Web3 Ready</div>
+        <div class="feature-desc">Purpose-built nodes for blockchain validators, DeFi applications, NFT platforms, and decentralized compute workloads with dedicated IP support.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING CAROUSEL -->
+<section id="pricing">
+  <div class="pricing-header reveal">
+    <div class="section-label">// Infrastructure Plans</div>
+    <h2 class="section-title">Choose Your Node</h2>
+  </div>
+
+  <div class="carousel-wrapper">
+    <div class="carousel-track-outer">
+      <div class="carousel-track" id="carouselTrack">
+
+        <!-- VPS Starter -->
+        <div class="price-card">
+          <div class="price-plan">VPS Starter</div>
+          <div class="price-amount">₹299</div>
+          <div class="price-period">per month</div>
+          <div class="price-divider"></div>
+          <ul class="price-specs">
+            <li>2 GB RAM</li>
+            <li>1 vCPU Core</li>
+            <li>40 GB SSD Storage</li>
+            <li>1 Gbps Network</li>
+            <li>99.9% Uptime SLA</li>
+          </ul>
+          <button class="buy-btn" onclick="selectPlan('VPS Starter — ₹299/month')">Buy Now</button>
+        </div>
+
+        <!-- VPS Pro -->
+        <div class="price-card">
+          <div class="price-plan">VPS Pro</div>
+          <div class="price-amount">₹599</div>
+          <div class="price-period">per month</div>
+          <div class="price-divider"></div>
+          <ul class="price-specs">
+            <li>4 GB RAM</li>
+            <li>2 vCPU Cores</li>
+            <li>80 GB SSD Storage</li>
+            <li>1 Gbps Network</li>
+            <li>Priority Support</li>
+          </ul>
+          <button class="buy-btn" onclick="selectPlan('VPS Pro — ₹599/month')">Buy Now</button>
+        </div>
+
+        <!-- VPS Ultra -->
+        <div class="price-card">
+          <div class="price-plan">VPS Ultra</div>
+          <div class="price-amount">₹1,199</div>
+          <div class="price-period">per month</div>
+          <div class="price-divider"></div>
+          <ul class="price-specs">
+            <li>8 GB RAM</li>
+            <li>4 vCPU Cores</li>
+            <li>160 GB SSD Storage</li>
+            <li>10 Gbps Network</li>
+            <li>DDoS Protection</li>
+          </ul>
+          <button class="buy-btn" onclick="selectPlan('VPS Ultra — ₹1199/month')">Buy Now</button>
+        </div>
+
+        <!-- Windows RDP -->
+        <div class="price-card featured">
+          <div class="price-badge">Popular</div>
+          <div class="price-plan">Windows RDP</div>
+          <div class="price-amount">₹1,499</div>
+          <div class="price-period">per month</div>
+          <div class="price-divider"></div>
+          <ul class="price-specs">
+            <li>8 GB RAM</li>
+            <li>4 Core CPU</li>
+            <li>Dedicated IP Address</li>
+            <li>Windows Server OS</li>
+            <li>Full Admin Access</li>
+          </ul>
+          <button class="buy-btn" onclick="selectPlan('Windows RDP — ₹1499/month')">Buy Now</button>
+        </div>
+
+        <!-- Enterprise Node -->
+        <div class="price-card">
+          <div class="price-plan">Enterprise Node</div>
+          <div class="price-amount">₹2,999</div>
+          <div class="price-period">per month</div>
+          <div class="price-divider"></div>
+          <ul class="price-specs">
+            <li>16 GB RAM</li>
+            <li>8 Core CPU</li>
+            <li>NVMe SSD Storage</li>
+            <li>Multiple Dedicated IPs</li>
+            <li>24/7 Priority Support</li>
+          </ul>
+          <button class="buy-btn" onclick="selectPlan('Enterprise Node — ₹2999/month')">Buy Now</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="carousel-controls">
+      <button class="carousel-btn" id="prevBtn">&#8592;</button>
+      <div class="carousel-dots" id="carouselDots"></div>
+      <button class="carousel-btn" id="nextBtn">&#8594;</button>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="reveal">
+    <div class="section-label">// The Builders</div>
+    <h2 class="section-title">Founders & Architects</h2>
+  </div>
+
+  <div class="team-grid reveal">
+    <div class="team-card">
+      <div class="team-avatar">PS</div>
+      <div class="team-name">Pratyay Srivastava</div>
+      <div class="team-role">Founder & Lead Systems Architect</div>
+      <div class="team-desc">Spearheading the development and operations of a digital infrastructure platform specializing in high-performance RDP and VPS solutions. Architecting systems that scale globally while maintaining uncompromised uptime standards.</div>
+      <div class="team-tag">Systems Architecture</div>
+    </div>
+
+    <div class="team-card">
+      <div class="team-avatar" style="background: linear-gradient(135deg, var(--purple), var(--magenta));">AK</div>
+      <div class="team-name">Aakansha Kumari</div>
+      <div class="team-role">Co-Founder & Creative Director</div>
+      <div class="team-desc">Driving brand identity, user experience, and modern interface design while ensuring the platform maintains a sleek and innovative Web3 presence. Shaping the visual language of next-generation cloud products.</div>
+      <div class="team-tag" style="border-color: rgba(168,85,247,0.2); color: var(--magenta); background: rgba(168,85,247,0.04);">Brand & UX Design</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="reveal">
+    <div class="section-label">// Get In Touch</div>
+    <h2 class="section-title">Deploy Your Node</h2>
+    <p style="color: var(--muted); font-size: 0.9rem; margin-top: 12px; line-height: 1.8;">Select a plan and reach out — our team will provision your infrastructure within 24 hours.</p>
+  </div>
+
+  <div class="contact-form-wrap reveal">
+    <form id="contactForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="fname">Full Name</label>
+          <input class="form-input" type="text" id="fname" name="from_name" placeholder="Your name" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="femail">Email Address</label>
+          <input class="form-input" type="email" id="femail" name="from_email" placeholder="you@domain.com" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="fplan">Selected Plan</label>
+        <select class="form-select" id="fplan" name="selected_plan" required>
+          <option value="">— Choose a plan —</option>
+          <option value="VPS Starter — ₹299/month">VPS Starter — ₹299/month</option>
+          <option value="VPS Pro — ₹599/month">VPS Pro — ₹599/month</option>
+          <option value="VPS Ultra — ₹1199/month">VPS Ultra — ₹1199/month</option>
+          <option value="Windows RDP — ₹1499/month">Windows RDP — ₹1499/month</option>
+          <option value="Enterprise Node — ₹2999/month">Enterprise Node — ₹2999/month</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="fmessage">Message</label>
+        <textarea class="form-textarea" id="fmessage" name="message" placeholder="Tell us about your use case, requirements, or any questions..." required></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Send Request — Launch Node</button>
+      <div class="form-msg" id="formMsg"></div>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">DATIXNODE</div>
+  <div class="footer-tagline">// Next Generation Cloud Infrastructure & Web3 Compute Solutions</div>
+  <ul class="footer-links">
+    <li><a href="#hero">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#pricing">Plans</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="footer-copy">© 2025 DatixNode. All rights reserved. Built with precision.</div>
+</footer>
+
+<!-- FLOATING SOCIAL BUTTONS -->
+<div class="float-socials">
+  <a href="https://www.linkedin.com/in/pratyaysrivastava/" target="_blank" class="float-btn linkedin" title="LinkedIn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+    </svg>
+  </a>
+  <a href="https://github.com/Pratyay26" target="_blank" class="float-btn github" title="GitHub">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+    </svg>
+  </a>
+</div>
+
+<script>
+  // === EMAILJS INIT — Replace with your credentials ===
+  (function(){
+    emailjs.init("FOJCmjGDV7tCgdjBY");
+  })();
+
+  // === CURSOR ===
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
+  });
+
+  function animateRing() {
+    rx += (mx - rx - 18) * 0.12;
+    ry += (my - ry - 18) * 0.12;
+    cursorRing.style.transform = `translate(${rx}px, ${ry}px)`;
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  // === CAROUSEL ===
+  const track = document.getElementById('carouselTrack');
+  const cards = track.querySelectorAll('.price-card');
+  const dotsContainer = document.getElementById('carouselDots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  const cardW = 300 + 24;
+  const visibleCount = () => Math.floor(track.parentElement.offsetWidth / cardW) || 1;
+  let currentIndex = 0;
+  const totalSlides = cards.length;
+
+  // Build dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function goTo(idx) {
+    const maxIndex = totalSlides - visibleCount();
+    currentIndex = Math.max(0, Math.min(idx, maxIndex));
+    track.style.transform = `translateX(-${currentIndex * cardW}px)`;
+    document.querySelectorAll('.carousel-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === currentIndex);
+    });
+  }
+
+  prevBtn.addEventListener('click', () => goTo(currentIndex - 1));
+  nextBtn.addEventListener('click', () => goTo(currentIndex + 1));
+
+  // Auto-advance
+  setInterval(() => goTo(currentIndex + 1 > totalSlides - visibleCount() ? 0 : currentIndex + 1), 5000);
+
+  // === BUY NOW PLAN SELECT ===
+  function selectPlan(plan) {
+    document.getElementById('fplan').value = plan;
+    document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+    // Small delay so scroll is visible, then flash the select
+    setTimeout(() => {
+      const sel = document.getElementById('fplan');
+      sel.style.borderColor = 'rgba(0,255,229,0.6)';
+      sel.style.boxShadow = '0 0 20px rgba(0,255,229,0.2)';
+      setTimeout(() => {
+        sel.style.borderColor = '';
+        sel.style.boxShadow = '';
+      }, 1200);
+    }, 700);
+  }
+
+  // === CONTACT FORM EMAILJS ===
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('formMsg');
+    btn.disabled = true;
+    btn.textContent = 'Transmitting...';
+    msg.style.display = 'none';
+
+
+    emailjs.sendForm('service_882xs5q', 'template_paxxodv', this)
+      .then(() => {
+        msg.className = 'form-msg success';
+        msg.style.display = 'block';
+        msg.textContent = '✓ Message received. We will contact you within 24 hours.';
+        btn.textContent = 'Request Sent ✓';
+        this.reset();
+      })
+      .catch(() => {
+        msg.className = 'form-msg error';
+        msg.style.display = 'block';
+        msg.textContent = '✕ Transmission failed. Please try again or email us directly.';
+        btn.disabled = false;
+        btn.textContent = 'Send Request — Launch Node';
+      });
+  });
+
+  // === SCROLL REVEAL ===
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.style.transitionDelay = '0.05s';
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  revealEls.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
